@@ -277,15 +277,22 @@ public class CanalController {
                     return instanceGenerator.generate(destination);
                 } else if (config.getMode().isSpring()) {
                     SpringCanalInstanceGenerator instanceGenerator = new SpringCanalInstanceGenerator();
+                    CanalInstance instance = null;
                     synchronized (this) {
                         try {
                             // 设置当前正在加载的通道，加载spring查找文件时会用到该变量
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, destination);
                             instanceGenerator.setBeanFactory(getBeanFactory(config.getSpringXml()));
-                            return instanceGenerator.generate(destination);
-                        } finally {
+                            instance = instanceGenerator.generate(destination);
+                        // edited by wangdong3 2014-12-08
+                        }catch(Exception e){
+                        	if(logger.isErrorEnabled()){
+                        		logger.error("generator instance failed.",e);
+                        	}
+                        }finally {
                             System.setProperty(CanalConstants.CANAL_DESTINATION_PROPERTY, "");
                         }
+                        return instance;
                     }
                 } else {
                     throw new UnsupportedOperationException("unknow mode :" + config.getMode());
